@@ -251,6 +251,8 @@ def get_customer_risk_profile(customer_id: str) -> str:
 
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
+        if request.url.path == "/health":
+            return await call_next(request)
         api_key = request.query_params.get("api_key")
         expected = os.environ.get("MCP_API_KEY")
         if expected and api_key != expected:
