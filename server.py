@@ -259,10 +259,15 @@ class AuthMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
+async def health(request):
+    return JSONResponse({"status": "ok"})
+
+
 def create_app():
     app = Starlette(
         routes=[
-            Mount("/", app=mcp.sse_app()),
+            Route("/health", endpoint=health),
+            Mount("/mcp", app=mcp.sse_app()),
         ],
     )
     app.add_middleware(AuthMiddleware)
