@@ -7,6 +7,8 @@ from typing import Optional
 import uvicorn
 from supabase import create_client, Client
 from mcp.server.fastmcp import FastMCP
+from starlette.applications import Starlette
+from starlette.routing import Mount
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("prex-mcp")
@@ -251,7 +253,10 @@ def get_customer_risk_profile(customer_id: str) -> str:
     }, indent=2, default=str)
 
 
-app = mcp.streamable_http_app()
+app = Starlette(routes=[
+    Mount('/', app=mcp.sse_app()),
+    Mount('', app=mcp.streamable_http_app()),
+])
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
