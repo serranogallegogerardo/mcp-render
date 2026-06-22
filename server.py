@@ -21,7 +21,6 @@ supabase: Client = create_client(supabase_url, supabase_key)
 
 mcp = FastMCP(
     "prex-customers-mcp",
-    description="MCP para consultar clientes, cuentas, tarjetas, transacciones y préstamos",
 )
 
 
