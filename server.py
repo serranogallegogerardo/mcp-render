@@ -10,7 +10,6 @@ from starlette.applications import Starlette
 from starlette.routing import Mount, Route
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
-from starlette.middleware.base import BaseHTTPMiddleware
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("prex-mcp")
@@ -249,21 +248,6 @@ def get_customer_risk_profile(customer_id: str) -> str:
     }, indent=2, default=str)
 
 
-class AuthMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request, call_next):
-        if request.url.path == "/health":
-            return await call_next(request)
-        api_key = request.query_params.get("api_key")
-        expected = os.environ.get("MCP_API_KEY")
-        if expected and api_key != expected:
-            return JSONResponse({"error": "Unauthorized"}, status_code=401)
-        return await call_next(request)
-
-
-async def health(request):
-    return JSONResponse({"status": "ok"})
-
-
 def create_app():
     app = Starlette(
         routes=[
@@ -271,7 +255,6 @@ def create_app():
             Mount("/mcp", app=mcp.sse_app()),
         ],
     )
-    app.add_middleware(AuthMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
