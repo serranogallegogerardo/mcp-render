@@ -6,10 +6,6 @@ from typing import Optional
 
 from supabase import create_client, Client
 from mcp.server.fastmcp import FastMCP
-from starlette.applications import Starlette
-from starlette.routing import Mount, Route
-from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import JSONResponse
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("prex-mcp")
@@ -18,13 +14,7 @@ supabase_url = os.environ.get("SUPABASE_URL", "")
 supabase_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
 supabase: Client = create_client(supabase_url, supabase_key)
 
-mcp = FastMCP(
-    "prex-customers-mcp",
-)
-
-
-async def health(request):
-    return JSONResponse({"status": "ok"})
+mcp = FastMCP("prex-customers-mcp")
 
 
 @mcp.tool()
@@ -252,25 +242,6 @@ def get_customer_risk_profile(customer_id: str) -> str:
     }, indent=2, default=str)
 
 
-def create_app():
-    app = Starlette(
-        routes=[
-            Route("/health", endpoint=health),
-            Mount("/mcp", app=mcp.sse_app()),
-        ],
-    )
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-    return app
-
-
-app = create_app()
-
 if __name__ == "__main__":
-    import uvicorn
     port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    mcp.run(transport="sse", host="0.0.0.0", port=port)
