@@ -251,7 +251,11 @@ def get_customer_risk_profile(customer_id: str) -> str:
     }, indent=2, default=str)
 
 
-app = mcp.sse_app()
+from starlette.applications import Starlette
+from starlette.routing import Route
+
+_streamable_routes = [r for r in mcp.streamable_http_app().routes if isinstance(r, Route)]
+app = Starlette(routes=mcp.sse_app().routes + _streamable_routes)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
