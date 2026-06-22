@@ -93,11 +93,21 @@ def get_customer_transactions(
 ) -> str:
     """Get recent transactions for a customer"""
     since = (datetime.utcnow() - timedelta(days=days_back)).isoformat()
+    account_ids = [
+        a["id"]
+        for a in supabase.table("accounts")
+        .select("id")
+        .eq("customer_id", customer_id)
+        .execute()
+        .data
+    ]
+    if not account_ids:
+        return json.dumps([])
     data = (
         supabase.table("transactions")
-        .select("*, accounts!inner(customer_id)")
-        .eq("accounts.customer_id", customer_id)
-        .gte("transactions.created_at", since)
+        .select("*")
+        .in_("account_id", account_ids)
+        .gte("created_at", since)
         .order("created_at", desc=True)
         .limit(limit)
         .execute()
@@ -135,16 +145,14 @@ def get_customer_full_profile(
     if not customer_data.data:
         return json.dumps({"error": "Customer not found"})
     customer = customer_data.data[0]
-    accounts = supabase.table("accounts").select("*").eq("customer_id", customer["id"]).execute()
+    accounts_data = supabase.table("accounts").select("*").eq("customer_id", customer["id"]).execute()
+    accounts = accounts_data
     cards = supabase.table("cards").select("*").eq("customer_id", customer["id"]).execute()
-    transactions = (
-        supabase.table("transactions")
-        .select("*, accounts!inner(customer_id)")
-        .eq("accounts.customer_id", customer["id"])
-        .order("created_at", desc=True)
-        .limit(20)
-        .execute()
-    )
+    acc_ids = [a["id"] for a in (accounts_data.data or [])]
+    if acc_ids:
+        transactions = supabase.table("transactions").select("*").in_("account_id", acc_ids).order("created_at", desc=True).limit(20).execute()
+    else:
+        transactions = type('obj', (object,), {'data': []})()
     loans = supabase.table("loans").select("*").eq("customer_id", customer["id"]).execute()
     return json.dumps(
         {
