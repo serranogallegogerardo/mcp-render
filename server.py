@@ -23,6 +23,10 @@ mcp = FastMCP(
 )
 
 
+async def health(request):
+    return JSONResponse({"status": "ok"})
+
+
 @mcp.tool()
 def list_customers(
     country: Optional[str] = None,
