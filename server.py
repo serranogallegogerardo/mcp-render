@@ -4,6 +4,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Optional
 
+import uvicorn
 from supabase import create_client, Client
 from mcp.server.fastmcp import FastMCP
 
@@ -242,6 +243,8 @@ def get_customer_risk_profile(customer_id: str) -> str:
     }, indent=2, default=str)
 
 
+app = mcp.streamable_http_app()
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
-    mcp.run(transport="sse", host="0.0.0.0", port=port)
+    uvicorn.run(app, host="0.0.0.0", port=port)
