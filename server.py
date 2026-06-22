@@ -15,7 +15,7 @@ supabase_url = os.environ.get("SUPABASE_URL", "")
 supabase_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
 supabase: Client = create_client(supabase_url, supabase_key)
 
-mcp = FastMCP("prex-customers-mcp", port=int(os.environ.get("PORT", 8000)), host="0.0.0.0", streamable_http_path="/")
+mcp = FastMCP("prex-customers-mcp", port=int(os.environ.get("PORT", 8000)), host="0.0.0.0", streamable_http_path="/api/mcp")
 
 
 @mcp.tool()
